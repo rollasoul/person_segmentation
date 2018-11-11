@@ -39,9 +39,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
 
     // Wait for the stream to load enough to play
     video.onloadedmetadata = function(e) {
-        video.play();
-        //loadModel();
-        runModel();
+            video.play();
     };
 })
 .catch(function(err) {
@@ -49,21 +47,26 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
     alert(err);
 });
 
-async function loadModel() {
-    await personSegmentation.load(1.0);
-    modelLoaded = 1;
-    return modelLoaded;
-};
+var loaded = personSegmentation.load()
 
-function runModel() {
-    personSegmentation.load().then(function(net){
-      return net.estimatePersonSegmentation(video, flipHorizontal, outputStride, segmentationThreshold)
+// async function loadModel() {
+//     await personSegmentation.load(0.75);
+//     modelLoaded = 1;
+//     return modelLoaded;
+// };
+
+async function runModel() {
+    //setTimeout(runModel, 4000)
+    loaded.then(function(net){
+      return net.estimatePersonSegmentation(video, flipHorizontal, 8, segmentationThreshold)
     }).then(function(segmentation){
-      //console.log(segmentation);
+      console.log(segmentation);
       personSegmentation.drawBodyMaskOnCanvas(
           video, segmentation, canvas);
+      requestAnimationFrame(runModel);
     });
 }
+runModel();
 
 </script>
 </html>
