@@ -1,0 +1,69 @@
+<html>
+<head>
+    <!-- Load TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.3"></script>
+    <!-- Load PersonSegmentation -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/person-segmentation@0.0.4"></script>
+</head>
+
+<body>
+    <video id='thevideo' autoplay></video>
+    <canvas id="output" width="640" height="480"></canvas>
+</body>
+<!-- Place your code in the script tag below. You can also use an external .js file -->
+<script>
+
+
+var outputStride = 16;
+var flipHorizontal = false;
+var segmentationThreshold = 0.5;
+const canvas = document.getElementById('output');
+const videoWidth = 640;
+const videoHeight = 480;
+var segmentation = 0;
+
+// The video element on the page to display the webcam
+let video = document.getElementById('thevideo');
+video.width = videoWidth;
+video.height = videoHeight;
+
+// Constraints - what do we want?
+let constraints = { audio: false, video: true }
+
+// Prompt the user for permission, get the stream
+navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+    /* Use the stream */
+
+    // Attach to our video object
+    video.srcObject = stream;
+
+    // Wait for the stream to load enough to play
+    video.onloadedmetadata = function(e) {
+        video.play();
+        //loadModel();
+        runModel();
+    };
+})
+.catch(function(err) {
+    /* Handle the error */
+    alert(err);
+});
+
+async function loadModel() {
+    await personSegmentation.load(1.0);
+    modelLoaded = 1;
+    return modelLoaded;
+};
+
+function runModel() {
+    personSegmentation.load().then(function(net){
+      return net.estimatePersonSegmentation(video, flipHorizontal, outputStride, segmentationThreshold)
+    }).then(function(segmentation){
+      //console.log(segmentation);
+      personSegmentation.drawBodyMaskOnCanvas(
+          video, segmentation, canvas);
+    });
+}
+
+</script>
+</html>
