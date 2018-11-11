@@ -10,7 +10,6 @@
     <video id='thevideo' autoplay></video>
     <canvas id="output" width="640" height="480"></canvas>
 </body>
-<!-- Place your code in the script tag below. You can also use an external .js file -->
 <script>
 
 
@@ -32,31 +31,18 @@ let constraints = { audio: false, video: true }
 
 // Prompt the user for permission, get the stream
 navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
-    /* Use the stream */
-
-    // Attach to our video object
     video.srcObject = stream;
-
-    // Wait for the stream to load enough to play
     video.onloadedmetadata = function(e) {
             video.play();
     };
 })
 .catch(function(err) {
-    /* Handle the error */
     alert(err);
 });
 
 var loaded = personSegmentation.load()
 
-// async function loadModel() {
-//     await personSegmentation.load(0.75);
-//     modelLoaded = 1;
-//     return modelLoaded;
-// };
-
 async function runModel() {
-    //setTimeout(runModel, 4000)
     loaded.then(function(net){
       return net.estimatePersonSegmentation(video, flipHorizontal, 8, segmentationThreshold)
     }).then(function(segmentation){
