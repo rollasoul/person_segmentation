@@ -8,51 +8,8 @@
 
 <body>
     <video id='thevideo' autoplay></video>
-    <canvas id="output" width="640" height="480"></canvas>
+    <canvas id="output1" width="640" height="480"></canvas>
+    <canvas id="output2" width="640" height="480"></canvas>
 </body>
-<script>
-
-
-var outputStride = 16;
-var flipHorizontal = false;
-var segmentationThreshold = 0.5;
-const canvas = document.getElementById('output');
-const videoWidth = 640;
-const videoHeight = 480;
-var segmentation = 0;
-
-// The video element on the page to display the webcam
-let video = document.getElementById('thevideo');
-video.width = videoWidth;
-video.height = videoHeight;
-
-// Constraints - what do we want?
-let constraints = { audio: false, video: true }
-
-// Prompt the user for permission, get the stream
-navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
-    video.srcObject = stream;
-    video.onloadedmetadata = function(e) {
-            video.play();
-    };
-})
-.catch(function(err) {
-    alert(err);
-});
-
-var loaded = personSegmentation.load()
-
-async function runModel() {
-    loaded.then(function(net){
-      return net.estimatePersonSegmentation(video, flipHorizontal, 8, segmentationThreshold)
-    }).then(function(segmentation){
-      console.log(segmentation);
-      personSegmentation.drawBodyMaskOnCanvas(
-          video, segmentation, canvas);
-      requestAnimationFrame(runModel);
-    });
-}
-runModel();
-
-</script>
+<script src="utils.js"></script>
 </html>
