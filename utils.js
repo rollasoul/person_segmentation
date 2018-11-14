@@ -14,6 +14,10 @@ const canvas1 = document.getElementById('output1');
 var ctx1 = canvas1.getContext('2d');
 const canvas2 = document.getElementById('output2');
 var ctx2 = canvas2.getContext('2d');
+const canvasF = document.getElementById('canvasF');
+var ctxF = canvasF.getContext('2d');
+var canvasCode = document.getElementById('canvasCode');
+var contextCode = canvasCode.getContext('2d');
 const videoWidth = 640;
 const videoHeight = 480;
 var segmentation = 0;
@@ -21,9 +25,13 @@ var segmentation = 0;
 // The video element on the page to display the webcam
 let video = document.getElementById('thevideo');
 
-//hide video Feeds
+
+//hide canvas feeds (except the final canvas outputB)
 document.getElementById('thevideo').style.display = 'none';
 document.getElementById('output1').style.display = 'none';
+document.getElementById('output2').style.display = 'none';
+//document.getElementById('outputB').style.display = 'none';
+document.getElementById('canvasCode').style.display = 'none';
 
 // Constraints - what do we want?
 let constraints = { audio: false, video: true }
@@ -45,20 +53,61 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
 //preload the personSegmentation from prediction to speed up process
 var loaded = personSegmentation.load();
 
+
 // mask the video feed based on segmentation data
 async function maskVideo(segmentation) {
+    // do the standard masking
     ctx1.drawImage(video, 0, 0, videoWidth, videoHeight);
 
+    //manipulate pixels
+    // mask person
     let frame = ctx1.getImageData(0, 0, videoWidth, videoHeight);
     let l = frame.data.length/4;
+    //create array of image data
     for (let i = 0; i < l; i++) {
-        if (segmentation[i] == 0) {
-            frame.data[i*4] = 255;
-            frame.data[i*4 + 1] = 255;
-            frame.data[i*4 + 2] = 255;
+        if (segmentation[i] == 1) {
+            //draw video mask
+            frame.data[i*4] = 0;
+            frame.data[i*4 + 1] = 0;
+            frame.data[i*4 + 2] = 0;
+            frame.data[i*4 + 3] = 0;
         }
     }
+    // write newImage (segmentation) on canvas2
     ctx2.putImageData(frame, 0, 0);
+
+    // convert canvas2 into Base64 code, clear the code-canvas(contextCode), write Base64 to code-canvas
+    var dataUrl = canvas2.toDataURL();
+    var lines = dataUrl.split('/');
+    void contextCode.clearRect(0, 0, 640, 480);
+    contextCode.font = "4px Arial";
+    for (var i = 0; i<lines.length; i++)
+        contextCode.fillText(lines[i], 0, 0 + (i*4) );
+        contextCode.font = "3px Arial";
+
+    //draw canvas2 (segmentation mask) on canvasF (finalcanvas), take pixel data from code-canvas(contextCode)
+    let frameF = ctx2.getImageData(0, 0, videoWidth, videoHeight);
+    let lF = frameF.data.length/4;
+    let frameC = contextCode.getImageData(0, 0, 640, 480);
+    let lC = frameC.data.length/4;
+
+    for (let i = 0; i < lC; i++) {
+        if (segmentation[i] == 1) {
+            //draw mask with code background
+            frameF.data[i*4] = frameC.data[i];
+            frameF.data[i*4 + 1] = frameC.data[i*4 + 1];
+            frameF.data[i*4 + 2] = frameC.data[i*4 + 2];
+            frameF.data[i*4 + 3] = frameC.data[i*4 + 3];
+        }
+        if (segmentation[i] == 0) {
+            //draw white background
+            frameF.data[i*4] = 0;
+            frameF.data[i*4 + 1] = 0;
+            frameF.data[i*4 + 2] = 0;
+            frameF.data[i*4 + 3] = 0;
+        }
+    }
+    ctxF.putImageData(frameF, 0, 0);
 };
 
 // main function in cascade-mode
