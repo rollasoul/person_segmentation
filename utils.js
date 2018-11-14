@@ -19,7 +19,7 @@ var ctxF = canvasF.getContext('2d');
 var canvasCode = document.getElementById('canvasCode');
 var contextCode = canvasCode.getContext('2d');
 const videoWidth = 640;
-const videoHeight = 480;
+const videoHeight = 740;
 var segmentation = 0;
 
 // The video element on the page to display the webcam
@@ -52,7 +52,11 @@ navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
 
 //preload the personSegmentation from prediction to speed up process
 var loaded = personSegmentation.load();
-
+WebFont.load({
+  google: {
+    families: ['Cutive Mono']
+  }
+});
 
 // mask the video feed based on segmentation data
 async function maskVideo(segmentation) {
@@ -79,16 +83,14 @@ async function maskVideo(segmentation) {
     // convert canvas2 into Base64 code, clear the code-canvas(contextCode), write Base64 to code-canvas
     var dataUrl = canvas2.toDataURL();
     var lines = dataUrl.split('/');
-    void contextCode.clearRect(0, 0, 640, 480);
-    contextCode.font = "4px Arial";
+    void contextCode.clearRect(0, 0, 640, 740);
     for (var i = 0; i<lines.length; i++)
         contextCode.fillText(lines[i], 0, 0 + (i*4) );
-        contextCode.font = "3px Arial";
-
+        contextCode.font = "5px Cutive Mono";
     //draw canvas2 (segmentation mask) on canvasF (finalcanvas), take pixel data from code-canvas(contextCode)
     let frameF = ctx2.getImageData(0, 0, videoWidth, videoHeight);
     let lF = frameF.data.length/4;
-    let frameC = contextCode.getImageData(0, 0, 640, 480);
+    let frameC = contextCode.getImageData(0, 0, 640, 740);
     let lC = frameC.data.length/4;
 
     for (let i = 0; i < lC; i++) {
